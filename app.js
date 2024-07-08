@@ -1,5 +1,5 @@
 const calcDisplay = document.querySelector('.calcDisplay');
-// let displayNum = '0'
+let displayNum = ''
 let firstNums = ''
 let secondNums = '';
 let numSwitch = 0;
@@ -34,24 +34,15 @@ const eventListeners = [
                 addToDisplay(key)
             }
             if (e.key === 'Backspace') {
-                if (numSwitch === 0) {
-                    if (firstNums.length >= 1) {
-                        firstNums = firstNums.slice(0, -1)
-                        updateDisplay(firstNums)
-                        if (firstNums === '') {
+                    if (displayNum.length >= 1) {
+                        displayNum = displayNum.slice(0, -1)
+                        updateDisplay(displayNum)
+                        if (displayNum === '') {
                             updateDisplay(0)
                         }
-                    } else if (!firstNums.length) {
+                    } else if (!displayNum.length) {
                         updateDisplay(0)
                     }
-                } else if (numSwitch === 1) {
-                    secondNums = secondNums.slice(0, -1)
-                    if(secondNums.length >= 1) {
-                        updateDisplay(secondNums)
-                    } else if (!secondNums.length) {
-                        updateDisplay(0);
-                    }
-                }
             }
         } catch (err) {
             console.log(err)
@@ -60,6 +51,8 @@ const eventListeners = [
     inputs.clearBtn.addEventListener('click', () => clearDisplay()),
     inputs.plusBtn.addEventListener('click', () => {
         if (numSwitch !== 1) {
+            firstNums = parseInt(displayNum);
+            displayNum = ''
             numSwitch = 1
             mode = 'add'
         }
@@ -71,14 +64,16 @@ const eventListeners = [
         }
     }),
     inputs.equalBtn.addEventListener('click', () => {
-        if (secondNums === '') {
-            secondNums = '0'
+        if (displayNum === '' || displayNum == NaN) {
+            displayNum = 0
         }
         if (mode === 'add') {
-            add()
+            secondNums = parseInt(displayNum);
+            displayNum = add()
             mode = 'none'
             numSwitch = 0;
-            secondNums = ''
+            firstNums = 0;
+            secondNums = 0;
         }
         if (mode === 'subtract') {
             subtract()
@@ -90,32 +85,35 @@ const eventListeners = [
 ]
 
 function addToDisplay(numInput) {
-    if (numSwitch === 0) {
-        firstNums += numInput
-        updateDisplay(firstNums)
-        console.log(firstNums)
-    } else if (numSwitch === 1) {
-        secondNums += numInput
-        updateDisplay(secondNums)
+    if (displayNum === '0') {
+        displayNum = ''
     }
+        displayNum += numInput
+        updateDisplay(displayNum)
+        console.log(displayNum)
 }
 
 function updateDisplay(value) {
-    console.log(value)
     calcDisplay.innerHTML = value;
 }
 
 function clearDisplay() {
-    firstNums = '';
-    secondNums = '';
+    displayNum = ''
+    resetNums()
     numSwitch = 0;
     calcDisplay.innerHTML = '0';
 }
 
+function resetNums() {
+    firstNums = 0
+    secondNums = 0
+}
+
 function add() {
-    firstNums = parseInt(firstNums) + parseInt(secondNums);
-    secondNums = ''
-    updateDisplay(firstNums)
+    displayNum = String(firstNums + secondNums);
+    console.log(displayNum)
+    updateDisplay(displayNum)
+    resetNums()
 }
 
 function subtract() {
