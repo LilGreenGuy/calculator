@@ -1,7 +1,7 @@
 const calcDisplay = document.querySelector('.calcDisplay');
 let displayNum = ''
-let firstNums = ''
-let secondNums = '';
+let firstNum = 0
+let secondNum = 0;
 let numSwitch = 0;
 let mode = 'none'
 
@@ -51,8 +51,8 @@ const eventListeners = [
     inputs.clearBtn.addEventListener('click', () => clearDisplay()),
     inputs.plusBtn.addEventListener('click', () => {
         if (numSwitch !== 1) {
-            firstNums = parseInt(displayNum);
-            displayNum = ''
+            checkNumber()
+            changeNums()
             numSwitch = 1
             mode = 'add'
         }
@@ -64,25 +64,40 @@ const eventListeners = [
         }
     }),
     inputs.equalBtn.addEventListener('click', () => {
-        if (displayNum === '' || displayNum == NaN) {
-            displayNum = 0
-        }
+        checkNumber()
         if (mode === 'add') {
-            secondNums = parseInt(displayNum);
-            displayNum = add()
-            mode = 'none'
+            secondNum = parseInt(displayNum);
+            add();
+            mode = 'none';
             numSwitch = 0;
-            firstNums = 0;
-            secondNums = 0;
         }
         if (mode === 'subtract') {
             subtract()
             mode = 'none'
             numSwitch = 0
-            secondNums = ''
+            secondNum = ''
         }
+        updateDisplay(displayNum);
+        resetNums();
     })
 ]
+function changeNums() {
+                firstNum = parseInt(displayNum);
+            displayNum = ''
+}
+
+
+function checkNumber() {
+    if (!Number.isInteger(parseInt(displayNum))) {
+        displayNum = 0;
+    }
+    if (!Number.isInteger(parseInt(firstNum))) {
+        firstNum = 0;
+    }
+    if (!Number.isInteger(parseInt(secondNum))) {
+        secondNum = 0;
+    }
+}
 
 function addToDisplay(numInput) {
     if (displayNum === '0') {
@@ -105,19 +120,17 @@ function clearDisplay() {
 }
 
 function resetNums() {
-    firstNums = 0
-    secondNums = 0
+    firstNum = 0
+    secondNum = 0
 }
 
 function add() {
-    displayNum = String(firstNums + secondNums);
+    console.log(firstNum)
+    displayNum = String(firstNum + secondNum);
     console.log(displayNum)
-    updateDisplay(displayNum)
-    resetNums()
 }
 
 function subtract() {
-    firstNums = parseInt(firstNums) - parseInt(secondNums);
-    secondNums = ''
-    updateDisplay(firstNums)
+    firstNum = parseInt(firstNum) - parseInt(secondNum);
+    secondNum = ''
 }
