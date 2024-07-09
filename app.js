@@ -34,15 +34,15 @@ const eventListeners = [
                 addToDisplay(key)
             }
             if (e.key === 'Backspace') {
-                    if (displayNum.length >= 1) {
-                        displayNum = displayNum.slice(0, -1)
-                        updateDisplay(displayNum)
-                        if (displayNum === '') {
-                            updateDisplay(0)
-                        }
-                    } else if (!displayNum.length) {
+                if (displayNum.length >= 1) {
+                    displayNum = displayNum.slice(0, -1)
+                    updateDisplay(displayNum)
+                    if (displayNum === '') {
                         updateDisplay(0)
                     }
+                } else if (!displayNum.length) {
+                    updateDisplay(0)
+                }
             }
         } catch (err) {
             console.log(err)
@@ -50,42 +50,73 @@ const eventListeners = [
     }),
     inputs.clearBtn.addEventListener('click', () => clearDisplay()),
     inputs.plusBtn.addEventListener('click', () => {
+        checkNumber();
         if (numSwitch !== 1) {
-            checkNumber()
-            changeNums()
-            numSwitch = 1
+            changeMode('add');
+        } else if (numSwitch === 1) {
+            changeFirstNum()
             mode = 'add'
         }
     }),
     inputs.minusBtn.addEventListener('click', () => {
+        checkNumber();
         if (numSwitch !== 1) {
-            numSwitch = 1
-            mode = 'subtract'
+            changeMode('subtract');
         }
     }),
+    inputs.multiplyBtn.addEventListener('click', () => {
+        checkNumber();
+        if (numSwitch !== 1) {
+            changeMode('multiply');
+        }
+    }),
+    inputs.divideBtn.addEventListener('click', () => {
+        checkNumber();
+        if (numSwitch !== 1) {
+            changeMode('divide');
+        }
+    }), (
+        inputs.decimalBtn.addEventListener('click', () => {
+            console.log('hello')
+            displayNum += '.'
+        })),
     inputs.equalBtn.addEventListener('click', () => {
-        checkNumber()
-        if (mode === 'add') {
-            secondNum = parseInt(displayNum);
-            add();
-            mode = 'none';
-            numSwitch = 0;
+        if (numSwitch === 1) {
+            checkNumber();
+            changeSecondNum();
+            if (mode === 'add') {
+                add();
+            }
+            if (mode === 'subtract') {
+                subtract();
+            }
+            if (mode === 'multiply') {
+                multiply();
+            }
+            if (mode === 'divide') {
+                divide();
+            }
+            reduceNumLength();
+            updateDisplay(displayNum);
+            resetNums();
         }
-        if (mode === 'subtract') {
-            subtract()
-            mode = 'none'
-            numSwitch = 0
-            secondNum = ''
-        }
-        updateDisplay(displayNum);
-        resetNums();
     })
 ]
-function changeNums() {
-                firstNum = parseInt(displayNum);
-            displayNum = ''
+
+function changeFirstNum() {
+    firstNum = parseFloat(displayNum);
+    displayNum = '';
 }
 
+function changeSecondNum() {
+    secondNum = parseFloat(displayNum);
+}
+
+function changeMode(newMode) {
+    changeFirstNum();
+    numSwitch = 1;
+    mode = newMode;
+}
 
 function checkNumber() {
     if (!Number.isInteger(parseInt(displayNum))) {
@@ -99,13 +130,19 @@ function checkNumber() {
     }
 }
 
+function reduceNumLength() {
+    if(displayNum.length > 12) {
+        displayNum = displayNum.slice(0, -(displayNum.length - 12))
+    }
+}
+
 function addToDisplay(numInput) {
     if (displayNum === '0') {
         displayNum = ''
     }
-        displayNum += numInput
-        updateDisplay(displayNum)
-        console.log(displayNum)
+    displayNum += numInput
+    updateDisplay(displayNum)
+    console.log(displayNum)
 }
 
 function updateDisplay(value) {
@@ -115,22 +152,28 @@ function updateDisplay(value) {
 function clearDisplay() {
     displayNum = ''
     resetNums()
-    numSwitch = 0;
     calcDisplay.innerHTML = '0';
 }
 
 function resetNums() {
-    firstNum = 0
-    secondNum = 0
+    firstNum = 0;
+    secondNum = 0;
+    mode = 'none';
+    numSwitch = 0;
 }
 
 function add() {
-    console.log(firstNum)
     displayNum = String(firstNum + secondNum);
-    console.log(displayNum)
 }
 
 function subtract() {
-    firstNum = parseInt(firstNum) - parseInt(secondNum);
-    secondNum = ''
+    displayNum = String(firstNum - secondNum);
+}
+
+function multiply() {
+    displayNum = String(firstNum * secondNum)
+}
+
+function divide() {
+    displayNum = String(firstNum / secondNum)
 }
