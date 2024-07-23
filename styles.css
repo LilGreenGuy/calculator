@@ -28,6 +28,11 @@ body {
     width: 300px;
 }
 
+.active {
+    background-color: rgb(84, 204, 204);
+    scale: 1.05;
+}
+
 .calcDisplay::-webkit-outer-spin-button,
 .calcDisplay::-webkit-inner-spin-button {
     -webkit-appearance: none;

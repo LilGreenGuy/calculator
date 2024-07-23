@@ -1,15 +1,57 @@
 const calcDisplay = document.querySelector('.calcDisplay');
-let displayNum = ''
-let firstNum = 0
-let secondNum = 0;
+let displayNum = '';
+let firstNum = '';
+let secondNum = '';
+let endNum = 0;
 let numSwitch = 0;
-let mode = 'none'
+let mode = 'none';
 
 const numberInputs = Array.from(document.querySelectorAll('[data-number]'))
 numberInputs.forEach(input => {
     input.addEventListener('click', () => {
-        addToDisplay(input.dataset.number)
+        if (numSwitch !== 1) {
+            firstNum += parseInt(input.dataset.number);
+            updateDisplay(firstNum);
+        } else if (numSwitch === 1) {
+            secondNum += parseInt(input.dataset.number);
+            updateDisplay(secondNum);
+        }
     })
+})
+
+window.addEventListener('keyup', (e) => {
+    console.log(e.key)
+    try {
+        if (numSwitch === 0) {
+            if (!isNaN(e.key)) {
+                firstNum += e.key;
+                updateDisplay(firstNum);
+            }
+            if (e.key === 'Backspace') {
+                if (firstNum.length >= 1) {
+                    firstNum = firstNum.slice(0, -1)
+                    updateDisplay(firstNum)
+                } else if (firstNum === '' || !firstNum.length) {
+                    updateDisplay(0)
+                }
+            }
+        } else if (numSwitch === 1) {
+            if (!isNaN(e.key)) {
+                secondNum += e.key;
+                updateDisplay(secondNum);
+            }
+            if (e.key === 'Backspace') {
+                if (secondNum.length >= 1) {
+                    secondNum = secondNum.slice(0, -1)
+                    updateDisplay(secondNum)
+                } else if (secondNum === '' || !secondNum.length) {
+                    updateDisplay(0)
+                }
+            }
+        }
+    } catch (err) {
+        console.log(err)
+    }
 })
 
 const inputs = {
@@ -25,103 +67,79 @@ const inputs = {
     plusBtn: document.querySelector('#plus')
 }
 
-const eventListeners = [
-    window.addEventListener('keyup', (e) => {
-        console.log(e.key)
-        try {
-            if (!isNaN(e.key)) {
-                const key = e.key
-                addToDisplay(key)
-            }
-            if (e.key === 'Backspace') {
-                if (displayNum.length >= 1) {
-                    displayNum = displayNum.slice(0, -1)
-                    updateDisplay(displayNum)
-                    if (displayNum === '') {
-                        updateDisplay(0)
-                    }
-                } else if (!displayNum.length) {
-                    updateDisplay(0)
+inputs.decimalBtn.addEventListener('click', () => {
+    if (numSwitch === 0 && !firstNum.includes('.')) {
+        firstNum += '.'
+                updateDisplay(firstNum);
+    }
+    if (numSwitch === 1 && !secondNum.includes('.')) {
+        secondNum += '.'
+                updateDisplay(secondNum);
+    }
+})
+
+for (let input in inputs) {
+    if (inputs[input] === inputs.plusBtn
+        || inputs[input] === inputs.minusBtn
+        || inputs[input] === inputs.multiplyBtn
+        || inputs[input] === inputs.divideBtn) {
+        inputs[input].addEventListener('click', (e) => {
+            for (let input in inputs) {
+                if (inputs[input].classList.contains('active') && inputs[input] !== e.target) {
+                    removeActiveClass(); //Loop runs over the inputs objects to remove active form any buttons other than the one pressed
                 }
             }
-        } catch (err) {
-            console.log(err)
-        }
-    }),
-    inputs.clearBtn.addEventListener('click', () => clearDisplay()),
-    inputs.plusBtn.addEventListener('click', () => {
-        checkNumber();
-        if (numSwitch !== 1) {
-            changeMode('add');
-        } else if (numSwitch === 1) {
-            changeFirstNum()
-            mode = 'add'
-        }
-    }),
-    inputs.minusBtn.addEventListener('click', () => {
-        checkNumber();
-        if (numSwitch !== 1) {
-            changeMode('subtract');
-        }
-    }),
-    inputs.multiplyBtn.addEventListener('click', () => {
-        checkNumber();
-        if (numSwitch !== 1) {
-            changeMode('multiply');
-        }
-    }),
-    inputs.divideBtn.addEventListener('click', () => {
-        checkNumber();
-        if (numSwitch !== 1) {
-            changeMode('divide');
-        }
-    }), (
-        inputs.decimalBtn.addEventListener('click', () => {
-            console.log('hello')
-            displayNum += '.'
-        })),
-    inputs.equalBtn.addEventListener('click', () => {
-        if (numSwitch === 1) {
-            checkNumber();
-            changeSecondNum();
-            if (mode === 'add') {
-                add();
+            if (!inputs[input].classList.contains('active')) {
+                inputs[input].classList.add('active')
+                numSwitch = 1;
+            } else if (inputs[input].classList.contains('active')) {
+                operate(inputs[input]);
+                updateNums();
+                updateDisplay(firstNum);
             }
-            if (mode === 'subtract') {
-                subtract();
-            }
-            if (mode === 'multiply') {
-                multiply();
-            }
-            if (mode === 'divide') {
-                divide();
-            }
-            reduceNumLength();
-            updateDisplay(displayNum);
-            resetNums();
-        }
-    })
-]
-
-function changeFirstNum() {
-    firstNum = parseFloat(displayNum);
-    displayNum = '';
-}
-
-function changeSecondNum() {
-    secondNum = parseFloat(displayNum);
-}
-
-function changeMode(newMode) {
-    changeFirstNum();
-    numSwitch = 1;
-    mode = newMode;
-}
-
-function checkNumber() {
-    if (!Number.isInteger(parseInt(displayNum))) {
-        displayNum = 0;
+        });
     }
+}
+
+inputs.equalBtn.addEventListener('click', () => {
+    checkNums();
+    for (let input in inputs) {
+        if (inputs[input].classList.contains('active')) {
+            operate(inputs[input]);
+        }
+    }
+    endEquation();
+})
+
+inputs.clearBtn.addEventListener('click', () => {
+    endEquation();
+    firstNum = '';
+})
+
+//Display functions
+
+function updateDisplay(num) {
+    displayNum = num
+    calcDisplay.innerHTML = displayNum;
+}
+
+function removeActiveClass() {
+    for (let input in inputs) {
+        if (inputs[input].classList.contains('active')) {
+            inputs[input].classList.remove('active');
+        }
+    }
+}
+
+function endEquation() {
+    updateDisplay(endNum);
+    updateNums();
+    removeActiveClass();
+    mode = 'none';
+    numSwitch = 0;
+}
+
+function checkNums() {
     if (!Number.isInteger(parseInt(firstNum))) {
         firstNum = 0;
     }
@@ -130,50 +148,51 @@ function checkNumber() {
     }
 }
 
-function reduceNumLength() {
-    if(displayNum.length > 12) {
-        displayNum = displayNum.slice(0, -(displayNum.length - 12))
+function updateNums() {
+    firstNum = endNum.toString();
+    secondNum = '';
+    endNum = 0;
+    if (firstNum == 0) {
+        firstNum = '';
     }
 }
 
-function addToDisplay(numInput) {
-    if (displayNum === '0') {
-        displayNum = ''
+//Math functions
+
+
+function operate(obj) {
+    checkNums();
+    function add(x, y) {
+        endNum = parseFloat(x) + parseFloat(y);
     }
-    displayNum += numInput
-    updateDisplay(displayNum)
-    console.log(displayNum)
-}
 
-function updateDisplay(value) {
-    calcDisplay.innerHTML = value;
-}
+    function subtract(x, y) {
+        endNum = parseFloat(x) - parseFloat(y);
+    }
 
-function clearDisplay() {
-    displayNum = ''
-    resetNums()
-    calcDisplay.innerHTML = '0';
-}
+    function multiply(x, y) {
+        endNum = parseFloat(x) * parseFloat(y);
+    }
 
-function resetNums() {
-    firstNum = 0;
-    secondNum = 0;
-    mode = 'none';
-    numSwitch = 0;
-}
+    function divide(x, y) {
+        endNum = parseFloat(x) / parseFloat(y);
+        if (x == 0 || y == 0) {
+            endNum = 0
+        }
+    }
 
-function add() {
-    displayNum = String(firstNum + secondNum);
-}
-
-function subtract() {
-    displayNum = String(firstNum - secondNum);
-}
-
-function multiply() {
-    displayNum = String(firstNum * secondNum)
-}
-
-function divide() {
-    displayNum = String(firstNum / secondNum)
+    switch (obj) {
+        case inputs.plusBtn:
+            add(firstNum, secondNum);
+            break;
+        case inputs.minusBtn:
+            subtract(firstNum, secondNum);
+            break;
+        case inputs.multiplyBtn:
+            multiply(firstNum, secondNum);
+            break;
+        case inputs.divideBtn:
+            divide(firstNum, secondNum);
+            break;
+    }
 }
