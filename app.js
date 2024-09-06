@@ -54,64 +54,76 @@ window.addEventListener('keyup', (e) => {
     }
 })
 
-const inputs = {
-    leftParenBtn: document.querySelector('#leftParen'),
-    rightParenBtn: document.querySelector('#rightParen'),
-    percentBtn: document.querySelector('#percent'),
+// DOM selectors
+
+const buttons = {
     clearBtn: document.querySelector('#clear'),
+    decimalBtn: document.querySelector('#decimal'),
+    equalBtn: document.querySelector('#equals'),
+}
+
+const operators = {
     divideBtn: document.querySelector('#divide'),
     multiplyBtn: document.querySelector('#multiply'),
     minusBtn: document.querySelector('#minus'),
-    decimalBtn: document.querySelector('#decimal'),
-    equalBtn: document.querySelector('#equals'),
     plusBtn: document.querySelector('#plus')
 }
 
-inputs.decimalBtn.addEventListener('click', () => {
+const secOperators = {
+    percentBtn: document.querySelector('#percent'),
+    powerBtn: document.querySelector('#power'),
+    squareBtn: document.querySelector('#square')
+}
+
+// Event Listeners
+
+for (let btn in operators) {
+    operators[btn].addEventListener('click', (e) => {
+        for (let input in operators) {
+            console.log(operators[input])
+            if (operators[input].classList.contains('active') && operators[input] !== e.target) {
+                removeActiveClass(); //Loop runs over the operators objects to remove active form any buttons other than the one pressed
+            }
+        }
+        if (!operators[btn].classList.contains('active')) {
+            operators[btn].classList.add('active')
+            numSwitch = 1;
+        } else if (operators[btn].classList.contains('active')) {
+            operate(operators[btn]);
+            updateNums();
+            updateDisplay(firstNum);
+        }
+    });
+}
+
+for (let btn in secOperators) {
+    secOperators[btn].addEventListener('click', () => {
+        operate(secOperators[btn]);
+    })
+}
+
+buttons.decimalBtn.addEventListener('click', () => {
     if (numSwitch === 0 && !firstNum.includes('.')) {
         firstNum += '.'
-                updateDisplay(firstNum);
+        updateDisplay(firstNum);
     }
     if (numSwitch === 1 && !secondNum.includes('.')) {
         secondNum += '.'
-                updateDisplay(secondNum);
+        updateDisplay(secondNum);
     }
 })
 
-for (let input in inputs) {
-    if (inputs[input] === inputs.plusBtn
-        || inputs[input] === inputs.minusBtn
-        || inputs[input] === inputs.multiplyBtn
-        || inputs[input] === inputs.divideBtn) {
-        inputs[input].addEventListener('click', (e) => {
-            for (let input in inputs) {
-                if (inputs[input].classList.contains('active') && inputs[input] !== e.target) {
-                    removeActiveClass(); //Loop runs over the inputs objects to remove active form any buttons other than the one pressed
-                }
-            }
-            if (!inputs[input].classList.contains('active')) {
-                inputs[input].classList.add('active')
-                numSwitch = 1;
-            } else if (inputs[input].classList.contains('active')) {
-                operate(inputs[input]);
-                updateNums();
-                updateDisplay(firstNum);
-            }
-        });
-    }
-}
-
-inputs.equalBtn.addEventListener('click', () => {
+buttons.equalBtn.addEventListener('click', () => {
     checkNums();
-    for (let input in inputs) {
-        if (inputs[input].classList.contains('active')) {
-            operate(inputs[input]);
+    for (let btn in operators) {
+        if (operators[btn].classList.contains('active')) {
+            operate(operators[btn]);
+            endEquation();
         }
     }
-    endEquation();
 })
 
-inputs.clearBtn.addEventListener('click', () => {
+buttons.clearBtn.addEventListener('click', () => {
     endEquation();
     firstNum = '';
 })
@@ -119,14 +131,15 @@ inputs.clearBtn.addEventListener('click', () => {
 //Display functions
 
 function updateDisplay(num) {
-    displayNum = num
+    displayNum = num;
+    // reduceNumLength()
     calcDisplay.innerHTML = displayNum;
 }
 
 function removeActiveClass() {
-    for (let input in inputs) {
-        if (inputs[input].classList.contains('active')) {
-            inputs[input].classList.remove('active');
+    for (let btn in operators) {
+        if (operators[btn].classList.contains('active')) {
+            operators[btn].classList.remove('active');
         }
     }
 }
@@ -157,6 +170,12 @@ function updateNums() {
     }
 }
 
+function reduceNumLength() {
+    if (displayNum.toString().length > 12) {
+        displayNum = Number.parseFloat(displayNum).toExponential(3)
+    }
+}
+
 //Math functions
 
 
@@ -180,19 +199,55 @@ function operate(obj) {
             endNum = 0
         }
     }
+    function power(x, y) {
+        if (numSwitch === 0) {
+            firstNum = Math.pow(x, 2);
+            updateDisplay(firstNum);
+        } else if (numSwitch === 1) {
+            secondNum = Math.pow(y, 2);
+            updateDisplay(secondNum);
+        }
+    }
+    function square(x, y) {
+        if (numSwitch === 0) {
+            firstNum = Math.sqrt(x);
+            updateDisplay(firstNum);
+        } else if (numSwitch === 1) {
+            secondNum = Math.sqrt(y);
+            updateDisplay(secondNum);
+        }
+    }
+    function percent(x, y) {
+        if (numSwitch === 0) {
+            firstNum = x / 100
+            updateDisplay(firstNum);
+        } else if (numSwitch === 1) {
+            secondNum = y / 100
+            updateDisplay(secondNum);
+        }
+    }
 
     switch (obj) {
-        case inputs.plusBtn:
+        case operators.plusBtn:
             add(firstNum, secondNum);
             break;
-        case inputs.minusBtn:
+        case operators.minusBtn:
             subtract(firstNum, secondNum);
             break;
-        case inputs.multiplyBtn:
+        case operators.multiplyBtn:
             multiply(firstNum, secondNum);
             break;
-        case inputs.divideBtn:
+        case operators.divideBtn:
             divide(firstNum, secondNum);
+            break;
+        case secOperators.powerBtn:
+            power(firstNum, secondNum);
+            break;
+        case secOperators.squareBtn:
+            square(firstNum, secondNum);
+            break;
+        case secOperators.percentBtn:
+            percent(firstNum, secondNum);
             break;
     }
 }
